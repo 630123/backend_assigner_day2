@@ -1,0 +1,87 @@
+const mongoose = require('mongoose');
+
+const connectDB = async () => {
+  try {
+    await mongoose.connect('mongodb://127.0.0.1:27017/user_profiles', {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log('Database connected successfully');
+  } catch (error) {
+    console.error('Database connection failed:', error.message);
+    process.exit(1);
+  }
+};
+
+module.exports = connectDB;
+const mongoose = require('mongoose');
+
+const userProfileSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  phoneNo: { type: String, required: true },
+  education: { type: String, required: true },
+  profilePic: { type: String },
+  currentLocation: { type: String, required: true },
+  city: { type: String, required: true },
+  state: { type: String, required: true },
+  additionalInfo: { type: String },
+});
+
+module.exports = mongoose.model('UserProfile', userProfileSchema);
+const UserProfile = require('../models/UserProfile.model');
+
+// Create User Profile
+exports.createUserProfile = async (req, res) => {
+  try {
+    const userProfile = new UserProfile(req.body);
+    await userProfile.save();
+    res.status(201).json({ message: 'User profile created successfully', data: userProfile });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Get All User Profiles
+exports.getAllUserProfiles = async (req, res) => {
+  try {
+    const profiles = await UserProfile.find();
+    res.status(200).json(profiles);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Get Single User Profile
+exports.getUserProfile = async (req, res) => {
+  try {
+    const profile = await UserProfile.findById(req.params.id);
+    if (!profile) return res.status(404).json({ error: 'Profile not found' });
+    res.status(200).json(profile);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Update User Profile
+exports.updateUserProfile = async (req, res) => {
+  try {
+    const profile = await UserProfile.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!profile) return res.status(404).json({ error: 'Profile not found' });
+    res.status(200).json({ message: 'User profile updated successfully', data: profile });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Delete User Profile
+exports.deleteUserProfile = async (req, res) => {
+  try {
+    const profile = await UserProfile.findByIdAndDelete(req.params.id);
+    if (!profile) return res.status(404).json({ error: 'Profile not found' });
+    res.status(200).json({ message: 'User profile deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
